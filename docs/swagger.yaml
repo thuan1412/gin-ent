@@ -16,6 +16,20 @@ paths:
       summary: ping example
       tags:
       - example
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: Get products lists
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      tags:
+      - Product
   /users:
     get:
       consumes:

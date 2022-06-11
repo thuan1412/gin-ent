@@ -9,7 +9,7 @@ import "github.com/gin-gonic/gin"
 // @Accept json
 // @Produce json
 // @Success 200 {string} Helloworld
-// @Router /users [ping get]
+// @Router /users [get]
 func GetUsers(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"user": "a"})
 }

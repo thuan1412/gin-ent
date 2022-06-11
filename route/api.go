@@ -23,4 +23,6 @@ func ping(c *gin.Context) {
 func SetUpRoute(router *gin.Engine) {
 	router.GET("/users", controller.GetUsers)
 	router.GET("/ping", ping)
+
+	router.GET("/products", controller.GetProducts)
 }
