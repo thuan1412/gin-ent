@@ -25,4 +25,5 @@ func SetUpRoute(router *gin.Engine) {
 	router.GET("/ping", ping)
 
 	router.GET("/products", controller.GetProducts)
+	router.POST("/products", controller.CreateProduct)
 }

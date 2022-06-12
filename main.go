@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"entgo.io/ent/dialect"
 	"fmt"
 	docs "gin-ent/docs"
-	"gin-ent/ent"
 	"gin-ent/helpers"
 	"gin-ent/route"
 	"github.com/gin-gonic/gin"
@@ -31,8 +29,7 @@ func main() {
 	r := gin.Default()
 	r.Use(InjectDbClient())
 
-	entClient, err := ent.Open(dialect.Postgres,
-		"host=localhost port=5432 user=postgres dbname=gin-ent password=1 sslmode=disable")
+	entClient, err := helpers.GetDb()
 	if err != nil {
 		log.Fatalln("failed to open connection to database:", err)
 	}
