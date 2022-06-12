@@ -39,6 +39,5 @@ func GetDb() (*ent.Client, error) {
 			return next.Mutate(ctx, m)
 		})
 	})
-	fmt.Println("connection logging info: ", db.Stats())
 	return client, nil
 }
