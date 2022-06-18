@@ -4,8 +4,9 @@ import (
 	"context"
 	"gin-ent/dto"
 	"gin-ent/ent"
-	"gin-ent/ent/category"
-	"gin-ent/ent/product"
+	categoryRepo "gin-ent/ent/category"
+	productRepo "gin-ent/ent/product"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
 
@@ -21,16 +22,18 @@ type ProductService struct {
 func (p ProductService) GetProducts(ctx context.Context, request dto.GetProductsRequest) ([]*ent.Product, error) {
 	query := p.Db.Product.Query()
 	if request.Name != "" {
-		query = query.Where(product.NameContainsFold(request.Name))
+		query = query.Where(productRepo.NameContainsFold(request.Name))
 	}
 	if request.CategoryId != 0 {
-		query = query.Where(product.HasCategoryWith(category.ID(request.CategoryId)))
+		query = query.Where(productRepo.HasCategoryWith(categoryRepo.ID(request.CategoryId)))
 	}
 	return query.All(ctx)
 }
 
 func (p ProductService) GetProduct(ctx context.Context, id int) (*dto.GetProductResponse, error) {
-	product, err := p.Db.Product.Query().Where(product.ID(id)).Only(ctx)
+	categoryService := CategoryService{Logger: p.Logger, Db: p.Db}
+	var err error
+	product, err := p.Db.Product.Query().Where(productRepo.ID(id)).Only(ctx)
 	if err != nil {
 		p.Logger.Warn("failed to get product", zap.Error(err))
 		return nil, err
@@ -44,21 +47,8 @@ func (p ProductService) GetProduct(ctx context.Context, id int) (*dto.GetProduct
 		p.Logger.Warn("failed to get category", zap.Error(err))
 		return nil, err
 	}
-	productResp.CategoryLevel = []dto.CategoryLevel{{ID: category.ID, Name: category.Name}}
 
-	var parentCat *ent.Category
-	for {
-		parentCat, err = category.QueryParent().Only(ctx)
-		if err != nil && !ent.IsNotFound(err) {
-			p.Logger.Warn("failed to get parent category", zap.Error(err))
-			return nil, err
-		}
-		if parentCat == nil {
-			break
-		}
-		category = parentCat
-		parentCat = nil
-		productResp.CategoryLevel = append(productResp.CategoryLevel, dto.CategoryLevel{ID: category.ID, Name: category.Name})
-	}
+	productResp.BreadCrumbs, err = categoryService.GetBreadCrumbs(ctx, category)
+	productResp.BreadCrumbs = lo.Reverse[*dto.BreadCrumb](productResp.BreadCrumbs)
 	return productResp, nil
 }

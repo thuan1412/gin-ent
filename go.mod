@@ -1,11 +1,12 @@
 module gin-ent
 
-go 1.17
+go 1.18
 
 require (
 	entgo.io/ent v0.10.1
 	github.com/gin-gonic/gin v1.8.1
 	github.com/lib/pq v1.10.4
+	github.com/samber/lo v1.21.0
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
 	github.com/swaggo/gin-swagger v1.5.0
 	github.com/swaggo/swag v1.8.2
@@ -44,6 +45,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d // indirect
 	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect

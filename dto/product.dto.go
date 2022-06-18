@@ -11,14 +11,14 @@ type GetProductsRequest struct {
 	CategoryId int    `form:"categoryId"`
 }
 
-type CategoryLevel struct {
+type BreadCrumb struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
 type GetProductResponse struct {
-	ID            int             `json:"id"`
-	Name          string          `json:"name"`
-	Price         float64         `json:"price"`
-	CategoryLevel []CategoryLevel `json:"categoryLevel"`
+	ID          int           `json:"id"`
+	Name        string        `json:"name"`
+	Price       float64       `json:"price"`
+	BreadCrumbs []*BreadCrumb `json:"breadCrumbs"`
 }
