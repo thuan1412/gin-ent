@@ -27,4 +27,6 @@ func SetUpRoute(router *gin.Engine) {
 	router.GET("/products", controller.GetProducts)
 	router.POST("/products", controller.CreateProduct)
 	router.GET("/products/:id", controller.GetProduct)
+
+	router.POST("/backdoor/dump-breadcrumb", controller.DumpCategoryBreadCrumb)
 }

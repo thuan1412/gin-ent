@@ -5,6 +5,7 @@ import (
 	"gin-ent/dto"
 	"gin-ent/ent"
 	"gin-ent/ent/category"
+	"gin-ent/helpers"
 	"gin-ent/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -99,6 +100,7 @@ func GetProduct(ctx *gin.Context) {
 	db := db_.(*ent.Client)
 	logger_, _ := ctx.Get("logger")
 	logger := logger_.(*zap.Logger)
+	redisClient := helpers.GetRedisFromContext(ctx)
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -107,7 +109,8 @@ func GetProduct(ctx *gin.Context) {
 		return
 	}
 
-	productService := service.ProductService{Logger: logger, Db: db}
+	// TODO: create generic function to get service from context
+	productService := service.ProductService{Logger: logger, Db: db, RedisClient: redisClient}
 	product, err := productService.GetProduct(ctx, id)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})

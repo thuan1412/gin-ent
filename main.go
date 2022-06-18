@@ -7,6 +7,7 @@ import (
 	"gin-ent/helpers"
 	"gin-ent/route"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -16,11 +17,17 @@ import (
 
 var logger *zap.Logger
 var entClient *ent.Client
+var redisClient *redis.Client
 var err error
 
 func init() {
 	logger = zap.NewExample()
 	entClient, err = helpers.GetDb()
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       5,
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -34,6 +41,7 @@ func InjectDbClient() gin.HandlerFunc {
 func InjectLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("logger", logger)
+		c.Set("redis", redisClient)
 	}
 }
 

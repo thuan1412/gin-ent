@@ -6,6 +6,7 @@ import (
 	"gin-ent/ent"
 	categoryRepo "gin-ent/ent/category"
 	productRepo "gin-ent/ent/product"
+	"github.com/go-redis/redis/v8"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 )
@@ -15,8 +16,9 @@ type IProductService interface {
 }
 
 type ProductService struct {
-	Logger *zap.Logger
-	Db     *ent.Client
+	Logger      *zap.Logger
+	Db          *ent.Client
+	RedisClient *redis.Client
 }
 
 func (p ProductService) GetProducts(ctx context.Context, request dto.GetProductsRequest) ([]*ent.Product, error) {
@@ -31,7 +33,7 @@ func (p ProductService) GetProducts(ctx context.Context, request dto.GetProducts
 }
 
 func (p ProductService) GetProduct(ctx context.Context, id int) (*dto.GetProductResponse, error) {
-	categoryService := CategoryService{Logger: p.Logger, Db: p.Db}
+	categoryService := CategoryService{Logger: p.Logger, Db: p.Db, RedisClient: p.RedisClient}
 	var err error
 	product, err := p.Db.Product.Query().Where(productRepo.ID(id)).Only(ctx)
 	if err != nil {
