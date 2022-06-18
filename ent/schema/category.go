@@ -16,12 +16,14 @@ func (Category) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").NotEmpty(),
 		field.String("code").Unique().NotEmpty(),
+		field.Int("parent_id").Optional(),
 	}
 }
 
 // Edges of the Category.
 func (Category) Edges() []ent.Edge {
+	// TODO: O2O relation?
 	return []ent.Edge{
-		edge.To("children", Category.Type).From("parent").Unique(),
+		edge.To("children", Category.Type).From("parent").Unique().Field("parent_id"),
 	}
 }

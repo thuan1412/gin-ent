@@ -11,6 +11,8 @@ const (
 	FieldName = "name"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
+	// FieldParentID holds the string denoting the parent_id field in the database.
+	FieldParentID = "parent_id"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
@@ -20,11 +22,11 @@ const (
 	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "categories"
 	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "category_children"
+	ParentColumn = "parent_id"
 	// ChildrenTable is the table that holds the children relation/edge.
 	ChildrenTable = "categories"
 	// ChildrenColumn is the table column denoting the children relation/edge.
-	ChildrenColumn = "category_children"
+	ChildrenColumn = "parent_id"
 )
 
 // Columns holds all SQL columns for category fields.
@@ -32,23 +34,13 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldCode,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "categories"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"category_children",
+	FieldParentID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}

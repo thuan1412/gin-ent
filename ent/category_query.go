@@ -28,7 +28,6 @@ type CategoryQuery struct {
 	// eager-loading edges.
 	withParent   *CategoryQuery
 	withChildren *CategoryQuery
-	withFKs      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -385,19 +384,12 @@ func (cq *CategoryQuery) prepareQuery(ctx context.Context) error {
 func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 	var (
 		nodes       = []*Category{}
-		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
 		loadedTypes = [2]bool{
 			cq.withParent != nil,
 			cq.withChildren != nil,
 		}
 	)
-	if cq.withParent != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, category.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Category{config: cq.config}
 		nodes = append(nodes, node)
@@ -422,10 +414,7 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 		ids := make([]int, 0, len(nodes))
 		nodeids := make(map[int][]*Category)
 		for i := range nodes {
-			if nodes[i].category_children == nil {
-				continue
-			}
-			fk := *nodes[i].category_children
+			fk := nodes[i].ParentID
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -439,7 +428,7 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_children" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Parent = n
@@ -455,7 +444,6 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 			nodeids[nodes[i].ID] = nodes[i]
 			nodes[i].Edges.Children = []*Category{}
 		}
-		query.withFKs = true
 		query.Where(predicate.Category(func(s *sql.Selector) {
 			s.Where(sql.InValues(category.ChildrenColumn, fks...))
 		}))
@@ -464,13 +452,10 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.category_children
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_children" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			fk := n.ParentID
+			node, ok := nodeids[fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_children" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "parent_id" returned %v for node %v`, fk, n.ID)
 			}
 			node.Edges.Children = append(node.Edges.Children, n)
 		}

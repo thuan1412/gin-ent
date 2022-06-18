@@ -8,6 +8,7 @@ import (
 	"gin-ent/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"strconv"
 )
 
 // GetProducts returns products list
@@ -79,6 +80,37 @@ func CreateProduct(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+	ctx.JSON(200, gin.H{"product": product})
+}
+
+// GetProduct returns a product
+// @Schemes
+// @Description Get a product
+// @Tags Product
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {string} Product
+// @Router /products/{id} [get]
+func GetProduct(ctx *gin.Context) {
+	db_, _ := ctx.Get("db")
+	db := db_.(*ent.Client)
+	logger_, _ := ctx.Get("logger")
+	logger := logger_.(*zap.Logger)
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		logger.Warn("error converting id", zap.Error(err))
+		ctx.JSON(400, gin.H{"error": fmt.Sprintf("invalid data: %s", err.Error())})
+		return
+	}
+
+	productService := service.ProductService{Logger: logger, Db: db}
+	product, err := productService.GetProduct(ctx, id)
+	if err != nil {
+		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(200, gin.H{"product": product})

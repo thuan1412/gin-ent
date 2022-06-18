@@ -31,16 +31,16 @@ func (cc *CategoryCreate) SetCode(s string) *CategoryCreate {
 	return cc
 }
 
-// SetParentID sets the "parent" edge to the Category entity by ID.
-func (cc *CategoryCreate) SetParentID(id int) *CategoryCreate {
-	cc.mutation.SetParentID(id)
+// SetParentID sets the "parent_id" field.
+func (cc *CategoryCreate) SetParentID(i int) *CategoryCreate {
+	cc.mutation.SetParentID(i)
 	return cc
 }
 
-// SetNillableParentID sets the "parent" edge to the Category entity by ID if the given value is not nil.
-func (cc *CategoryCreate) SetNillableParentID(id *int) *CategoryCreate {
-	if id != nil {
-		cc = cc.SetParentID(*id)
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (cc *CategoryCreate) SetNillableParentID(i *int) *CategoryCreate {
+	if i != nil {
+		cc.SetParentID(*i)
 	}
 	return cc
 }
@@ -211,7 +211,7 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.category_children = &nodes[0]
+		_node.ParentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cc.mutation.ChildrenIDs(); len(nodes) > 0 {

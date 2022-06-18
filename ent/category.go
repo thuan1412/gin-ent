@@ -19,10 +19,11 @@ type Category struct {
 	Name string `json:"name,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
+	// ParentID holds the value of the "parent_id" field.
+	ParentID int `json:"parent_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CategoryQuery when eager-loading is set.
-	Edges             CategoryEdges `json:"edges"`
-	category_children *int
+	Edges CategoryEdges `json:"edges"`
 }
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
@@ -64,12 +65,10 @@ func (*Category) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case category.FieldID:
+		case category.FieldID, category.FieldParentID:
 			values[i] = new(sql.NullInt64)
 		case category.FieldName, category.FieldCode:
 			values[i] = new(sql.NullString)
-		case category.ForeignKeys[0]: // category_children
-			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Category", columns[i])
 		}
@@ -103,12 +102,11 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.Code = value.String
 			}
-		case category.ForeignKeys[0]:
+		case category.FieldParentID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field category_children", value)
+				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
 			} else if value.Valid {
-				c.category_children = new(int)
-				*c.category_children = int(value.Int64)
+				c.ParentID = int(value.Int64)
 			}
 		}
 	}
@@ -152,6 +150,8 @@ func (c *Category) String() string {
 	builder.WriteString(c.Name)
 	builder.WriteString(", code=")
 	builder.WriteString(c.Code)
+	builder.WriteString(", parent_id=")
+	builder.WriteString(fmt.Sprintf("%v", c.ParentID))
 	builder.WriteByte(')')
 	return builder.String()
 }

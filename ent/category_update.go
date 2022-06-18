@@ -39,17 +39,23 @@ func (cu *CategoryUpdate) SetCode(s string) *CategoryUpdate {
 	return cu
 }
 
-// SetParentID sets the "parent" edge to the Category entity by ID.
-func (cu *CategoryUpdate) SetParentID(id int) *CategoryUpdate {
-	cu.mutation.SetParentID(id)
+// SetParentID sets the "parent_id" field.
+func (cu *CategoryUpdate) SetParentID(i int) *CategoryUpdate {
+	cu.mutation.SetParentID(i)
 	return cu
 }
 
-// SetNillableParentID sets the "parent" edge to the Category entity by ID if the given value is not nil.
-func (cu *CategoryUpdate) SetNillableParentID(id *int) *CategoryUpdate {
-	if id != nil {
-		cu = cu.SetParentID(*id)
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (cu *CategoryUpdate) SetNillableParentID(i *int) *CategoryUpdate {
+	if i != nil {
+		cu.SetParentID(*i)
 	}
+	return cu
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (cu *CategoryUpdate) ClearParentID() *CategoryUpdate {
+	cu.mutation.ClearParentID()
 	return cu
 }
 
@@ -332,17 +338,23 @@ func (cuo *CategoryUpdateOne) SetCode(s string) *CategoryUpdateOne {
 	return cuo
 }
 
-// SetParentID sets the "parent" edge to the Category entity by ID.
-func (cuo *CategoryUpdateOne) SetParentID(id int) *CategoryUpdateOne {
-	cuo.mutation.SetParentID(id)
+// SetParentID sets the "parent_id" field.
+func (cuo *CategoryUpdateOne) SetParentID(i int) *CategoryUpdateOne {
+	cuo.mutation.SetParentID(i)
 	return cuo
 }
 
-// SetNillableParentID sets the "parent" edge to the Category entity by ID if the given value is not nil.
-func (cuo *CategoryUpdateOne) SetNillableParentID(id *int) *CategoryUpdateOne {
-	if id != nil {
-		cuo = cuo.SetParentID(*id)
+// SetNillableParentID sets the "parent_id" field if the given value is not nil.
+func (cuo *CategoryUpdateOne) SetNillableParentID(i *int) *CategoryUpdateOne {
+	if i != nil {
+		cuo.SetParentID(*i)
 	}
+	return cuo
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (cuo *CategoryUpdateOne) ClearParentID() *CategoryUpdateOne {
+	cuo.mutation.ClearParentID()
 	return cuo
 }
 
