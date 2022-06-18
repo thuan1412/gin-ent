@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"gin-ent/ent/category"
 	"gin-ent/ent/predicate"
-	"gin-ent/ent/product"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -38,21 +37,6 @@ func (cu *CategoryUpdate) SetName(s string) *CategoryUpdate {
 func (cu *CategoryUpdate) SetCode(s string) *CategoryUpdate {
 	cu.mutation.SetCode(s)
 	return cu
-}
-
-// AddProductIDs adds the "products" edge to the Product entity by IDs.
-func (cu *CategoryUpdate) AddProductIDs(ids ...int) *CategoryUpdate {
-	cu.mutation.AddProductIDs(ids...)
-	return cu
-}
-
-// AddProducts adds the "products" edges to the Product entity.
-func (cu *CategoryUpdate) AddProducts(p ...*Product) *CategoryUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cu.AddProductIDs(ids...)
 }
 
 // SetParentID sets the "parent" edge to the Category entity by ID.
@@ -92,27 +76,6 @@ func (cu *CategoryUpdate) AddChildren(c ...*Category) *CategoryUpdate {
 // Mutation returns the CategoryMutation object of the builder.
 func (cu *CategoryUpdate) Mutation() *CategoryMutation {
 	return cu.mutation
-}
-
-// ClearProducts clears all "products" edges to the Product entity.
-func (cu *CategoryUpdate) ClearProducts() *CategoryUpdate {
-	cu.mutation.ClearProducts()
-	return cu
-}
-
-// RemoveProductIDs removes the "products" edge to Product entities by IDs.
-func (cu *CategoryUpdate) RemoveProductIDs(ids ...int) *CategoryUpdate {
-	cu.mutation.RemoveProductIDs(ids...)
-	return cu
-}
-
-// RemoveProducts removes "products" edges to Product entities.
-func (cu *CategoryUpdate) RemoveProducts(p ...*Product) *CategoryUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cu.RemoveProductIDs(ids...)
 }
 
 // ClearParent clears the "parent" edge to the Category entity.
@@ -249,60 +212,6 @@ func (cu *CategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: category.FieldCode,
 		})
 	}
-	if cu.mutation.ProductsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.RemovedProductsIDs(); len(nodes) > 0 && !cu.mutation.ProductsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cu.mutation.ProductsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if cu.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -423,21 +332,6 @@ func (cuo *CategoryUpdateOne) SetCode(s string) *CategoryUpdateOne {
 	return cuo
 }
 
-// AddProductIDs adds the "products" edge to the Product entity by IDs.
-func (cuo *CategoryUpdateOne) AddProductIDs(ids ...int) *CategoryUpdateOne {
-	cuo.mutation.AddProductIDs(ids...)
-	return cuo
-}
-
-// AddProducts adds the "products" edges to the Product entity.
-func (cuo *CategoryUpdateOne) AddProducts(p ...*Product) *CategoryUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cuo.AddProductIDs(ids...)
-}
-
 // SetParentID sets the "parent" edge to the Category entity by ID.
 func (cuo *CategoryUpdateOne) SetParentID(id int) *CategoryUpdateOne {
 	cuo.mutation.SetParentID(id)
@@ -475,27 +369,6 @@ func (cuo *CategoryUpdateOne) AddChildren(c ...*Category) *CategoryUpdateOne {
 // Mutation returns the CategoryMutation object of the builder.
 func (cuo *CategoryUpdateOne) Mutation() *CategoryMutation {
 	return cuo.mutation
-}
-
-// ClearProducts clears all "products" edges to the Product entity.
-func (cuo *CategoryUpdateOne) ClearProducts() *CategoryUpdateOne {
-	cuo.mutation.ClearProducts()
-	return cuo
-}
-
-// RemoveProductIDs removes the "products" edge to Product entities by IDs.
-func (cuo *CategoryUpdateOne) RemoveProductIDs(ids ...int) *CategoryUpdateOne {
-	cuo.mutation.RemoveProductIDs(ids...)
-	return cuo
-}
-
-// RemoveProducts removes "products" edges to Product entities.
-func (cuo *CategoryUpdateOne) RemoveProducts(p ...*Product) *CategoryUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cuo.RemoveProductIDs(ids...)
 }
 
 // ClearParent clears the "parent" edge to the Category entity.
@@ -655,60 +528,6 @@ func (cuo *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err
 			Value:  value,
 			Column: category.FieldCode,
 		})
-	}
-	if cuo.mutation.ProductsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.RemovedProductsIDs(); len(nodes) > 0 && !cuo.mutation.ProductsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := cuo.mutation.ProductsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if cuo.mutation.ParentCleared() {
 		edge := &sqlgraph.EdgeSpec{

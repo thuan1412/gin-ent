@@ -2,8 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"gin-ent/dto"
 	"gin-ent/ent"
+	"gin-ent/ent/category"
+	"gin-ent/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // GetProducts returns products list
@@ -15,15 +19,22 @@ import (
 // @Success 200 {string} Product
 // @Router /products [get]
 func GetProducts(ctx *gin.Context) {
-	db_, exist := ctx.Get("db")
-	if !exist {
-		ctx.JSON(500, gin.H{"error": "internal server error"})
+	db_, _ := ctx.Get("db")
+	db := db_.(*ent.Client)
+	logger_, _ := ctx.Get("logger")
+	logger := logger_.(*zap.Logger)
+	productService := service.ProductService{Logger: logger, Db: db}
+
+	getProductRequest := dto.GetProductsRequest{}
+	if err := ctx.ShouldBind(&getProductRequest); err != nil {
+		logger.Warn("error binding json", zap.Error(err))
+		ctx.JSON(400, gin.H{"error": "invalid data"})
 		return
 	}
-	db := db_.(*ent.Client)
-	products, err := db.Product.Query().All(ctx)
+
+	products, err := productService.GetProducts(ctx, getProductRequest)
 	if err != nil {
-		ctx.JSON(500, gin.H{"error": "internal server error"})
+		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(200, gin.H{"products": products})
@@ -39,22 +50,36 @@ func GetProducts(ctx *gin.Context) {
 // @Success 200 {string} Product
 // @Router /products [post]
 func CreateProduct(ctx *gin.Context) {
-	db_, exist := ctx.Get("db")
-	if !exist {
-		ctx.JSON(500, gin.H{"error": "internal server error"})
-		return
-	}
+	db_, _ := ctx.Get("db")
+	logger_, _ := ctx.Get("logger")
 	db := db_.(*ent.Client)
-	var product ent.Product
-	if err := ctx.ShouldBindJSON(&product); err != nil {
-		fmt.Println("failed to bind json:", err)
-		ctx.JSON(500, gin.H{"error": "internal server error"})
+	logger := logger_.(*zap.Logger)
+	var productDto dto.CreateProductRequest
+	if err := ctx.ShouldBindJSON(&productDto); err != nil {
+		logger.Warn("error binding json", zap.Error(err))
+		ctx.JSON(400, gin.H{"error": fmt.Sprintf("invalid data: %s", err.Error())})
 		return
 	}
-	p, err := db.Product.Create().SetName(product.Name).SetPrice(product.Price).Save(ctx)
+
+	catExist, err := db.Category.Query().Where(category.ID(productDto.CategoryId)).Exist(ctx)
+	if !catExist {
+		ctx.JSON(400, gin.H{"error": fmt.Sprintf("category %d not found", productDto.CategoryId)})
+		return
+	}
 	if err != nil {
+		logger.Warn("error checking category exist", zap.Error(err))
 		ctx.JSON(500, gin.H{"error": "internal server error"})
 		return
 	}
-	ctx.JSON(200, gin.H{"product": p})
+	product, err := db.Product.Create().SetName(productDto.Name).SetPrice(productDto.Price).SetCategoryID(productDto.CategoryId).Save(ctx)
+	if err != nil {
+		logger.Warn("failed to create product", zap.Error(err))
+		if ent.IsConstraintError(err) {
+			ctx.JSON(400, gin.H{"error": fmt.Sprintf("invalid data: %s", err.Error())})
+			return
+		}
+		ctx.JSON(500, gin.H{"error": "internal server error"})
+		return
+	}
+	ctx.JSON(200, gin.H{"product": product})
 }

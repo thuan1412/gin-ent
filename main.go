@@ -2,25 +2,38 @@ package main
 
 import (
 	"context"
-	"fmt"
 	docs "gin-ent/docs"
+	"gin-ent/ent"
 	"gin-ent/helpers"
 	"gin-ent/route"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.uber.org/zap"
 	"log"
 )
 
+var logger *zap.Logger
+var entClient *ent.Client
+var err error
+
+func init() {
+	logger = zap.NewExample()
+	entClient, err = helpers.GetDb()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func InjectDbClient() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		entClient, err := helpers.GetDb()
-		if err != nil {
-			fmt.Println("failed to open connection to database:", err)
-			c.JSON(500, gin.H{"error": "internal server error"})
-		}
 		c.Set("db", entClient)
+	}
+}
+func InjectLogger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("logger", logger)
 	}
 }
 
@@ -28,6 +41,7 @@ func main() {
 	// start gin server
 	r := gin.Default()
 	r.Use(InjectDbClient())
+	r.Use(InjectLogger())
 
 	entClient, err := helpers.GetDb()
 	if err != nil {

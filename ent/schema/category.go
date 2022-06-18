@@ -22,9 +22,6 @@ func (Category) Fields() []ent.Field {
 // Edges of the Category.
 func (Category) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("products", Product.Type),
-
-		//edge.From("parent", Category.Type).Ref("children"),
 		edge.To("children", Category.Type).From("parent").Unique(),
 	}
 }

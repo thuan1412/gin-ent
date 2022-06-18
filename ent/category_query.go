@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"gin-ent/ent/category"
 	"gin-ent/ent/predicate"
-	"gin-ent/ent/product"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
@@ -27,7 +26,6 @@ type CategoryQuery struct {
 	fields     []string
 	predicates []predicate.Category
 	// eager-loading edges.
-	withProducts *ProductQuery
 	withParent   *CategoryQuery
 	withChildren *CategoryQuery
 	withFKs      bool
@@ -65,28 +63,6 @@ func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
 func (cq *CategoryQuery) Order(o ...OrderFunc) *CategoryQuery {
 	cq.order = append(cq.order, o...)
 	return cq
-}
-
-// QueryProducts chains the current query on the "products" edge.
-func (cq *CategoryQuery) QueryProducts() *ProductQuery {
-	query := &ProductQuery{config: cq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := cq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := cq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(category.Table, category.FieldID, selector),
-			sqlgraph.To(product.Table, product.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, category.ProductsTable, category.ProductsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryParent chains the current query on the "parent" edge.
@@ -314,7 +290,6 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		offset:       cq.offset,
 		order:        append([]OrderFunc{}, cq.order...),
 		predicates:   append([]predicate.Category{}, cq.predicates...),
-		withProducts: cq.withProducts.Clone(),
 		withParent:   cq.withParent.Clone(),
 		withChildren: cq.withChildren.Clone(),
 		// clone intermediate query.
@@ -322,17 +297,6 @@ func (cq *CategoryQuery) Clone() *CategoryQuery {
 		path:   cq.path,
 		unique: cq.unique,
 	}
-}
-
-// WithProducts tells the query-builder to eager-load the nodes that are connected to
-// the "products" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *CategoryQuery) WithProducts(opts ...func(*ProductQuery)) *CategoryQuery {
-	query := &ProductQuery{config: cq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	cq.withProducts = query
-	return cq
 }
 
 // WithParent tells the query-builder to eager-load the nodes that are connected to
@@ -423,8 +387,7 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 		nodes       = []*Category{}
 		withFKs     = cq.withFKs
 		_spec       = cq.querySpec()
-		loadedTypes = [3]bool{
-			cq.withProducts != nil,
+		loadedTypes = [2]bool{
 			cq.withParent != nil,
 			cq.withChildren != nil,
 		}
@@ -453,35 +416,6 @@ func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
-	}
-
-	if query := cq.withProducts; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*Category)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Products = []*Product{}
-		}
-		query.withFKs = true
-		query.Where(predicate.Product(func(s *sql.Selector) {
-			s.Where(sql.InValues(category.ProductsColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.category_products
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "category_products" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "category_products" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Products = append(node.Edges.Products, n)
-		}
 	}
 
 	if query := cq.withParent; query != nil {

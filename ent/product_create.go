@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-ent/ent/category"
 	"gin-ent/ent/product"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,6 +30,25 @@ func (pc *ProductCreate) SetName(s string) *ProductCreate {
 func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
 	pc.mutation.SetPrice(f)
 	return pc
+}
+
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (pc *ProductCreate) SetCategoryID(id int) *ProductCreate {
+	pc.mutation.SetCategoryID(id)
+	return pc
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (pc *ProductCreate) SetNillableCategoryID(id *int) *ProductCreate {
+	if id != nil {
+		pc = pc.SetCategoryID(*id)
+	}
+	return pc
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pc *ProductCreate) SetCategory(c *Category) *ProductCreate {
+	return pc.SetCategoryID(c.ID)
 }
 
 // Mutation returns the ProductMutation object of the builder.
@@ -149,6 +169,26 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 			Column: product.FieldPrice,
 		})
 		_node.Price = value
+	}
+	if nodes := pc.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.product_category = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

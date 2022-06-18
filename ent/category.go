@@ -27,30 +27,19 @@ type Category struct {
 
 // CategoryEdges holds the relations/edges for other nodes in the graph.
 type CategoryEdges struct {
-	// Products holds the value of the products edge.
-	Products []*Product `json:"products,omitempty"`
 	// Parent holds the value of the parent edge.
 	Parent *Category `json:"parent,omitempty"`
 	// Children holds the value of the children edge.
 	Children []*Category `json:"children,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
-}
-
-// ProductsOrErr returns the Products value or an error if the edge
-// was not loaded in eager-loading.
-func (e CategoryEdges) ProductsOrErr() ([]*Product, error) {
-	if e.loadedTypes[0] {
-		return e.Products, nil
-	}
-	return nil, &NotLoadedError{edge: "products"}
+	loadedTypes [2]bool
 }
 
 // ParentOrErr returns the Parent value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CategoryEdges) ParentOrErr() (*Category, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		if e.Parent == nil {
 			// The edge parent was loaded in eager-loading,
 			// but was not found.
@@ -64,7 +53,7 @@ func (e CategoryEdges) ParentOrErr() (*Category, error) {
 // ChildrenOrErr returns the Children value or an error if the edge
 // was not loaded in eager-loading.
 func (e CategoryEdges) ChildrenOrErr() ([]*Category, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[1] {
 		return e.Children, nil
 	}
 	return nil, &NotLoadedError{edge: "children"}
@@ -124,11 +113,6 @@ func (c *Category) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
-}
-
-// QueryProducts queries the "products" edge of the Category entity.
-func (c *Category) QueryProducts() *ProductQuery {
-	return (&CategoryClient{config: c.config}).QueryProducts(c)
 }
 
 // QueryParent queries the "parent" edge of the Category entity.

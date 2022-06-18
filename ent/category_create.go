@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"gin-ent/ent/category"
-	"gin-ent/ent/product"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -30,21 +29,6 @@ func (cc *CategoryCreate) SetName(s string) *CategoryCreate {
 func (cc *CategoryCreate) SetCode(s string) *CategoryCreate {
 	cc.mutation.SetCode(s)
 	return cc
-}
-
-// AddProductIDs adds the "products" edge to the Product entity by IDs.
-func (cc *CategoryCreate) AddProductIDs(ids ...int) *CategoryCreate {
-	cc.mutation.AddProductIDs(ids...)
-	return cc
-}
-
-// AddProducts adds the "products" edges to the Product entity.
-func (cc *CategoryCreate) AddProducts(p ...*Product) *CategoryCreate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return cc.AddProductIDs(ids...)
 }
 
 // SetParentID sets the "parent" edge to the Category entity by ID.
@@ -209,25 +193,6 @@ func (cc *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 			Column: category.FieldCode,
 		})
 		_node.Code = value
-	}
-	if nodes := cc.mutation.ProductsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   category.ProductsTable,
-			Columns: []string{category.ProductsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: product.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := cc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

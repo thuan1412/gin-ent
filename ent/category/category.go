@@ -11,21 +11,12 @@ const (
 	FieldName = "name"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// EdgeProducts holds the string denoting the products edge name in mutations.
-	EdgeProducts = "products"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
 	EdgeParent = "parent"
 	// EdgeChildren holds the string denoting the children edge name in mutations.
 	EdgeChildren = "children"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
-	// ProductsTable is the table that holds the products relation/edge.
-	ProductsTable = "products"
-	// ProductsInverseTable is the table name for the Product entity.
-	// It exists in this package in order to avoid circular dependency with the "product" package.
-	ProductsInverseTable = "products"
-	// ProductsColumn is the table column denoting the products relation/edge.
-	ProductsColumn = "category_products"
 	// ParentTable is the table that holds the parent relation/edge.
 	ParentTable = "categories"
 	// ParentColumn is the table column denoting the parent relation/edge.

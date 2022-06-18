@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"gin-ent/ent/category"
 	"gin-ent/ent/product"
 	"strings"
 
@@ -18,8 +19,34 @@ type Product struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Price holds the value of the "price" field.
-	Price             float64 `json:"price,omitempty"`
-	category_products *int
+	Price float64 `json:"price,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProductQuery when eager-loading is set.
+	Edges            ProductEdges `json:"edges"`
+	product_category *int
+}
+
+// ProductEdges holds the relations/edges for other nodes in the graph.
+type ProductEdges struct {
+	// Category holds the value of the category edge.
+	Category *Category `json:"category,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// CategoryOrErr returns the Category value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProductEdges) CategoryOrErr() (*Category, error) {
+	if e.loadedTypes[0] {
+		if e.Category == nil {
+			// The edge category was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: category.Label}
+		}
+		return e.Category, nil
+	}
+	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -33,7 +60,7 @@ func (*Product) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case product.FieldName:
 			values[i] = new(sql.NullString)
-		case product.ForeignKeys[0]: // category_products
+		case product.ForeignKeys[0]: // product_category
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Product", columns[i])
@@ -70,14 +97,19 @@ func (pr *Product) assignValues(columns []string, values []interface{}) error {
 			}
 		case product.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field category_products", value)
+				return fmt.Errorf("unexpected type %T for edge-field product_category", value)
 			} else if value.Valid {
-				pr.category_products = new(int)
-				*pr.category_products = int(value.Int64)
+				pr.product_category = new(int)
+				*pr.product_category = int(value.Int64)
 			}
 		}
 	}
 	return nil
+}
+
+// QueryCategory queries the "category" edge of the Product entity.
+func (pr *Product) QueryCategory() *CategoryQuery {
+	return (&ProductClient{config: pr.config}).QueryCategory(pr)
 }
 
 // Update returns a builder for updating this Product.

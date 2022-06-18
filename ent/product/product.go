@@ -11,8 +11,17 @@ const (
 	FieldName = "name"
 	// FieldPrice holds the string denoting the price field in the database.
 	FieldPrice = "price"
+	// EdgeCategory holds the string denoting the category edge name in mutations.
+	EdgeCategory = "category"
 	// Table holds the table name of the product in the database.
 	Table = "products"
+	// CategoryTable is the table that holds the category relation/edge.
+	CategoryTable = "products"
+	// CategoryInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	CategoryInverseTable = "categories"
+	// CategoryColumn is the table column denoting the category relation/edge.
+	CategoryColumn = "product_category"
 )
 
 // Columns holds all SQL columns for product fields.
@@ -25,7 +34,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "products"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"category_products",
+	"product_category",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gin-ent/ent/category"
 	"gin-ent/ent/predicate"
 	"gin-ent/ent/product"
 
@@ -46,9 +47,34 @@ func (pu *ProductUpdate) AddPrice(f float64) *ProductUpdate {
 	return pu
 }
 
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (pu *ProductUpdate) SetCategoryID(id int) *ProductUpdate {
+	pu.mutation.SetCategoryID(id)
+	return pu
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (pu *ProductUpdate) SetNillableCategoryID(id *int) *ProductUpdate {
+	if id != nil {
+		pu = pu.SetCategoryID(*id)
+	}
+	return pu
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (pu *ProductUpdate) SetCategory(c *Category) *ProductUpdate {
+	return pu.SetCategoryID(c.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pu *ProductUpdate) Mutation() *ProductMutation {
 	return pu.mutation
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (pu *ProductUpdate) ClearCategory() *ProductUpdate {
+	pu.mutation.ClearCategory()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -144,6 +170,41 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: product.FieldPrice,
 		})
 	}
+	if pu.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{product.Label}
@@ -182,9 +243,34 @@ func (puo *ProductUpdateOne) AddPrice(f float64) *ProductUpdateOne {
 	return puo
 }
 
+// SetCategoryID sets the "category" edge to the Category entity by ID.
+func (puo *ProductUpdateOne) SetCategoryID(id int) *ProductUpdateOne {
+	puo.mutation.SetCategoryID(id)
+	return puo
+}
+
+// SetNillableCategoryID sets the "category" edge to the Category entity by ID if the given value is not nil.
+func (puo *ProductUpdateOne) SetNillableCategoryID(id *int) *ProductUpdateOne {
+	if id != nil {
+		puo = puo.SetCategoryID(*id)
+	}
+	return puo
+}
+
+// SetCategory sets the "category" edge to the Category entity.
+func (puo *ProductUpdateOne) SetCategory(c *Category) *ProductUpdateOne {
+	return puo.SetCategoryID(c.ID)
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (puo *ProductUpdateOne) Mutation() *ProductMutation {
 	return puo.mutation
+}
+
+// ClearCategory clears the "category" edge to the Category entity.
+func (puo *ProductUpdateOne) ClearCategory() *ProductUpdateOne {
+	puo.mutation.ClearCategory()
+	return puo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -303,6 +389,41 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			Value:  value,
 			Column: product.FieldPrice,
 		})
+	}
+	if puo.mutation.CategoryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.CategoryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   product.CategoryTable,
+			Columns: []string{product.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Product{config: puo.config}
 	_spec.Assign = _node.assignValues

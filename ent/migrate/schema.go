@@ -34,7 +34,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "price", Type: field.TypeFloat64},
-		{Name: "category_products", Type: field.TypeInt, Nullable: true},
+		{Name: "product_category", Type: field.TypeInt, Nullable: true},
 	}
 	// ProductsTable holds the schema information for the "products" table.
 	ProductsTable = &schema.Table{
@@ -43,7 +43,7 @@ var (
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "products_categories_products",
+				Symbol:     "products_categories_category",
 				Columns:    []*schema.Column{ProductsColumns[3]},
 				RefColumns: []*schema.Column{CategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
